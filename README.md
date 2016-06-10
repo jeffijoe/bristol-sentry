@@ -1,3 +1,5 @@
+> Hello! Thanks for stopping by, but this module is not ready yet. Come back later! :D
+
 # [Sentry](https://getsentry.com) transport + formatter for [Bristol](https://github.com/TomFrost/bristol)
 
 [![npm version](https://badge.fury.io/js/bristol-sentry.svg)](https://badge.fury.io/js/bristol-sentry)
