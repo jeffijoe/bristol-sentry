@@ -2,7 +2,7 @@
 const bristolSeverityToSentryLevel = require('../../lib/bristolSeverityToSentryLevel');
 
 describe('bristolSeverityToSentryLevel', function() {
-  it('works', function() {
+  it('converts levels correctly ', function() {
     bristolSeverityToSentryLevel('error').should.equal('error');
     bristolSeverityToSentryLevel('warning').should.equal('warn');
     bristolSeverityToSentryLevel('info').should.equal('info');
