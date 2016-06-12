@@ -16,7 +16,7 @@ Bristol transport + formatter to send events and errors to Sentry.
 You will need to install this package, as well as `raven`, which is the Sentry node.js client.
 
 ```
-npm install --save bristol-sentry raven
+npm install --save bristol-sentry raven bristol
 ```
 
 ## Getting started
@@ -39,7 +39,7 @@ bristol.error(new Error('o shit waddup'));
 ```
 
 > **IMPORTANT!** Sentry differentiates between errors and messages. An attempt to log an `Error` object will trigger a `captureException`, whereas anything else triggers a `captureMessage`.
-> Since `capureException` does not store any message other than the one from the error, `bristol-sentry` will add the message (if any) to the `extra` array.
+> Since `captureException` does not store any message other than the one from the error, `bristol-sentry` will prepend the message (if any) to the `extra` array.
 
 ## Contributing
 

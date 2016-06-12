@@ -113,8 +113,8 @@ describe('bristol-sentry', function() {
       logger.info('Info log', { more: 'stuff' });
       logger.warn('Warning log', { more: 'stuff' });
       logger.error('Error log, here come dat boi', { more: 'stuff' });
-      const error = new Error('Shit wattap');
-      logger.error(error);
+      const error = new Error('shit waddup');
+      logger.error('he be rollin to the beat', error);
     });
   });
 });
