@@ -2,6 +2,7 @@
 const bristolSentry = require('../../lib/bristol-sentry');
 const bristol = require('bristol');
 const raven = require('raven');
+const formatter = bristolSentry.formatter;
 
 describe('bristol-sentry', function() {
   it('exists', function() {
@@ -10,31 +11,41 @@ describe('bristol-sentry', function() {
 
   it('creates an object that has a formatter and a target', function() {
     const subject = bristolSentry({ });
-    subject.should.be.an.object;
-    subject.target.should.be.a.function;
-    subject.formatter.should.be.a.function;
+    subject.should.be.a.function;
+    formatter.should.be.a.function;
   });
 
   describe('formatter', function() {
     it('returns an object with a message and extras', function() {
       const subject = bristolSentry({ });
-      const result = subject.formatter({}, 'error', new Date(), ['Some', 'message', 123, 'cool', {some: 'object'}]);
+      const result = formatter({}, 'error', new Date(), ['Some', 'message', 123, 'cool', {some: 'object'}]);
       result.message.should.equal('Some message 123 cool');
       result.extra[0].some.should.equal('object');
     });
 
-    it('returns an object with error set if first elem is an error', function() {
+    it('returns an object with error set if an elem is an error', function() {
       const error = new Error();
       const subject = bristolSentry({ });
-      const result = subject.formatter({}, 'error', new Date(), [error, 'nope']);
+      const result = formatter({}, 'error', new Date(), [error, 'nope']);
       result.error.should.equal(error);
+      result.message.should.equal('nope');
     });
 
-    it('returns an object with no error set if elem is an error but not the first', function() {
+    it('returns an object with an error set if elem is an error even if not the first', function() {
       const error = new Error();
       const subject = bristolSentry({ });
-      const result = subject.formatter({}, 'error', new Date(), ['nope', error]);
-      expect(result.error).to.be.undefined;
+      const result = formatter({}, 'error', new Date(), ['nope', error]);
+      result.error.should.equal(error);
+      result.message.should.equal('nope');
+    });
+
+    it('handles funky ordering', function() {
+      const error = new Error('dat boi');
+      const subject = bristolSentry({ });
+      const result = formatter({}, 'error', new Date(), ['here come', error.message, error, 'shit waddup', { rollin: 'down the street' }]);
+      result.error.should.equal(error);
+      result.message.should.equal('here come dat boi shit waddup');
+      result.extra[0].rollin.should.equal('down the street');
     });
   });
 
@@ -51,14 +62,21 @@ describe('bristol-sentry', function() {
     });
 
     it('calls captureMessage when there is no error', function() {
-      subject.target({}, 'error', new Date(), { message: 'Hello!', extra: { hello: 'world' }});
+      subject({}, 'error', new Date(), { message: 'Hello!', extra: { hello: 'world' }});
       client.captureMessage.should.have.been.calledWith('Hello!', { level: 'error', extra: { hello: 'world' }});
     });
 
     it('calls captureException when there is an error', function() {
       const error = new Error();
-      subject.target({}, 'error', new Date(), { error: error, extra: [{ hello: 'world' }]});
+      subject({}, 'error', new Date(), { error: error, extra: [{ hello: 'world' }]});
       client.captureException.should.have.been.calledWith(error, { level: 'error', extra: [{ hello: 'world' }]});
+    });
+
+    it('adds message to extra when capturing error', function() {
+      const error = new Error('aww yiss');
+      const message = 'mother fuckin bread crumbs';
+      subject({}, 'error', new Date(), { message: message, error: error, extra: [{ hello: 'world' }]});
+      client.captureException.should.have.been.calledWith(error, { level: 'error', extra: [message, { hello: 'world' }]});
     });
   });
 
@@ -73,7 +91,7 @@ describe('bristol-sentry', function() {
 
       subject = bristolSentry({ client: client });
       logger = new bristol.Bristol();
-      logger.addTarget(subject.target).withFormatter(subject.formatter);
+      logger.addTarget(subject).withFormatter(formatter);
     });
 
     it('calls the correct client methods', function() {
@@ -89,7 +107,7 @@ describe('bristol-sentry', function() {
     it('does not fail, heh', function() {
       const logger = new bristol.Bristol();
       const bs = bristolSentry({ client: new raven.Client(process.env.SENTRY_DSN)});
-      logger.addTarget(bs.target).withFormatter(bs.formatter);
+      logger.addTarget(bs).withFormatter(formatter);
 
       logger.debug('Debug log', 42, { more: 'stuff' });
       logger.info('Info log', { more: 'stuff' });
