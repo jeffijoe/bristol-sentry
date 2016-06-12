@@ -1,6 +1,7 @@
 'use strict';
 const bristolSentry = require('../../lib/bristol-sentry');
 const bristol = require('bristol');
+const raven = require('raven');
 
 describe('bristol-sentry', function() {
   it('exists', function() {
@@ -79,9 +80,23 @@ describe('bristol-sentry', function() {
       const error = new Error();
       logger.error(error, { hello: 'world' });
       logger.error('Hah!', { hello: 'world' });
-
       client.captureException.should.have.been.calledWith(error, { level: 'error', extra: [sinon.match({ hello: 'world' })] });
       client.captureMessage.should.have.been.calledWith('Hah!', { level: 'error', extra: [sinon.match({ hello: 'world' })] });
+    });
+  });
+
+  describe('integration', function() {
+    it('does not fail, heh', function() {
+      const logger = new bristol.Bristol();
+      const bs = bristolSentry({ client: new raven.Client(process.env.SENTRY_DSN)});
+      logger.addTarget(bs.target).withFormatter(bs.formatter);
+
+      logger.debug('Debug log', 42, { more: 'stuff' });
+      logger.info('Info log', { more: 'stuff' });
+      logger.warn('Warning log', { more: 'stuff' });
+      logger.error('Error log, here come dat boi', { more: 'stuff' });
+      const error = new Error('Shit wattap');
+      logger.error(error);
     });
   });
 });
