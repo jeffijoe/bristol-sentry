@@ -1,6 +1,6 @@
 {
   "name": "bristol-sentry",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Sentry transport + formatter for the Bristol logger",
   "main": "lib/bristol-sentry.js",
   "engines": {
