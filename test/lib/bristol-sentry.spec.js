@@ -17,7 +17,6 @@ describe('bristol-sentry', function() {
 
   describe('formatter', function() {
     it('returns an object with a message and extras', function() {
-      const subject = bristolSentry({ });
       const result = formatter({}, 'error', new Date(), ['Some', 'message', 123, 'cool', {some: 'object'}]);
       result.message.should.equal('Some message 123 cool');
       result.extra[0].some.should.equal('object');
@@ -25,7 +24,6 @@ describe('bristol-sentry', function() {
 
     it('returns an object with error set if an elem is an error', function() {
       const error = new Error();
-      const subject = bristolSentry({ });
       const result = formatter({}, 'error', new Date(), [error, 'nope']);
       result.error.should.equal(error);
       result.message.should.equal('nope');
@@ -33,7 +31,6 @@ describe('bristol-sentry', function() {
 
     it('returns an object with an error set if elem is an error even if not the first', function() {
       const error = new Error();
-      const subject = bristolSentry({ });
       const result = formatter({}, 'error', new Date(), ['nope', error]);
       result.error.should.equal(error);
       result.message.should.equal('nope');
@@ -41,11 +38,19 @@ describe('bristol-sentry', function() {
 
     it('handles funky ordering', function() {
       const error = new Error('dat boi');
-      const subject = bristolSentry({ });
       const result = formatter({}, 'error', new Date(), ['here come', error.message, error, 'shit waddup', { rollin: 'down the street' }]);
       result.error.should.equal(error);
       result.message.should.equal('here come dat boi shit waddup');
       result.extra[0].rollin.should.equal('down the street');
+    });
+
+    it('returns an object with a message if the supposed error is not actually an error', function() {
+      const error = { status: 404, body: 'Oh shit son' };
+      const result = formatter({}, 'error', new Date(), ['here come', 'dat boi', error, { rollin: 'down the street' }]);
+      expect(result.error).to.not.be.ok;
+      result.message.should.equal('here come dat boi');
+      result.extra[0].status.should.equal(404);
+      result.extra[1].rollin.should.equal('down the street');
     });
   });
 
